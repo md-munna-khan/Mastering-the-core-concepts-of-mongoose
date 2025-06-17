@@ -504,3 +504,288 @@ const noteSchema = new Schema(
   }
 );
 ```
+
+## 17-7 Project Structuring: Models, Routes, Services, Controllers
+
+#### We will Not Keep all the works in the same app file. we will follow `MVC` Pattern for splitting all the works in different modules.
+
+- Full form of `MVC` is Model, View, Controller
+
+**Model:** Manages and stores the data of the application.
+
+_What it is:_ The part of the application that manages the data, logic, and rules. Connects with mongodb and sets a data structure and make to follow the structure.
+
+- Role:
+
+1. Retrieves data from the database.
+
+2. Updates the data when the user interacts.
+
+3. Notifies the view if the data changes.
+
+**Example:** If you're building a blog, the Model would be the Post object with properties like title, content, and methods to save() or delete() a post.
+
+**View:** Displays the data to the user in a user-friendly way. Most Of The View Works will be done by react now.
+
+_What it is:_ The UI (User Interface) of the application.
+
+- Role:
+
+1. Displays data to the user (usually from the model).
+
+2. Sends user interactions (like button clicks) to the controller.
+
+**Example:** The blog page that shows a list of posts, each with its title and content.
+
+**Controller:** Handles user input and updates the Model and View.
+
+_What it is:_ The part that connects the Model and the View. Receives user request and based on the request do the operation by connecting with database and sends response.
+
+- Role:
+
+1. Takes user input from the view.
+
+2. Processes it (e.g., validating form data).
+
+3. Calls the appropriate method on the model.
+
+4. May tell the view to update.
+
+**Example:** The blog page that shows a list of posts, each with its title and content.
+
+- Model = Kitchen (prepares data, i.e., the food)
+
+- View = Menu + Table (what the user sees)
+
+- Controller = Waiter (takes orders from user, tells kitchen, brings food)
+
+#### note.model.ts
+
+```js
+import { model, Schema } from "mongoose";
+
+// 1. create schema
+const noteSchema = new Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    content: { type: String, default: "" },
+    category: {
+      type: String,
+      enum: ["personal", "work", "study", "others"],
+      default: "personal",
+    },
+    pinned: {
+      type: Boolean,
+      default: false,
+    },
+    tags: {
+      label: { type: String, required: true },
+      color: { type: String, default: "gray" },
+    },
+  },
+  {
+    versionKey: false,
+    timestamps: true,
+  }
+);
+
+// 2. Create Model
+export const Note = model("Note", noteSchema);
+```
+
+#### note.controller.ts
+
+```js
+import { Request, Response } from "express";
+import { Note } from "../models/note.model";
+import express from "express";
+
+export const noteRoutes = express.Router();
+
+// 3. Insert data using the model
+noteRoutes.post("/create-note", async (req: Request, res: Response) => {
+  const body = req.body;
+  const note = await Note.create(body);
+
+  res.status(201).json({
+    success: true,
+    message: "Note Created Successfully !",
+    note: note,
+  });
+});
+// get all notes
+noteRoutes.get("/", async (req: Request, res: Response) => {
+  const notes = await Note.find();
+
+  res.status(201).json({
+    success: true,
+    message: "Notes Retrieved Successfully !",
+    note: notes,
+  });
+});
+
+noteRoutes.get("/:noteId", async (req: Request, res: Response) => {
+  const noteId = req.params.noteId;
+  const note = await Note.findById(noteId);
+  // const note = await Note.findOne({ _id: noteId });
+
+  res.status(201).json({
+    success: true,
+    message: "Note Retrieved Successfully !",
+    note: note,
+  });
+});
+
+// update a note
+
+noteRoutes.patch("/:noteId", async (req: Request, res: Response) => {
+  const noteId = req.params.noteId;
+  const updatedBody = req.body;
+  const note = await Note.findByIdAndUpdate(noteId, updatedBody, { new: true });
+  res.status(201).json({
+    success: true,
+    message: "Note Updated Successfully !",
+    note: note,
+  });
+});
+
+// delete a note
+
+noteRoutes.delete("/:noteId", async (req: Request, res: Response) => {
+  const noteId = req.params.noteId;
+
+  const note = await Note.findByIdAndDelete(noteId);
+
+  res.status(201).json({
+    success: true,
+    message: "Note Deleted Successfully !",
+    note: note,
+  });
+});
+```
+
+#### app.ts
+
+```js
+import express, { Application, NextFunction, Request, Response } from "express";
+import { noteRoutes } from "./app/controllers/note.controller";
+
+const app: Application = express();
+
+app.use(express.json());
+
+app.use("/notes", noteRoutes);
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome To Todo App");
+});
+export default app;
+```
+## 17-9 User CRUD Operations and Making interface for Notes Schema
+#### users schema
+- must be create this
+![alt text](image-1.png)
+```js
+import { model, Schema } from "mongoose";
+import { IUser } from "../interfaces/user.interfaces";
+
+const userSchema = new Schema<IUser>({
+    firstName:{
+        type:String,
+        required:true,
+        trim:true
+    },
+    lastName:{
+        type:String,
+        required:true,
+        trim:true
+    },
+    email:{
+        type:String,
+        required:true,
+        trim:true
+    },
+    password:{
+           type:String,
+        required:true,
+       
+    },
+    role:{
+        type:String,
+       enum:['user','admin'],
+       default:'user'
+    }
+})
+
+ export const User = model("User",userSchema)
+ ```
+ ```js
+ import express, { Request, Response } from "express";
+
+import { User } from "../models/user.models";
+
+export const userRoutes = express.Router();
+userRoutes.post("/create-user", async (req: Request, res: Response) => {
+  const body = req.body;
+  // approach -1 creating a database
+  //   const myNote = new Note({
+  //     title: "Learning Express",
+  //     tags: {
+  //       label: "database",
+  //     },
+  //   });
+  //   await myNote.save();
+
+  //approach-2
+  const user = await User.create(body);
+  res.status(201).json({
+    success: true,
+    message: "Note created Successfully",
+    user,
+  });
+});
+userRoutes.get("/", async (req: Request, res: Response) => {
+  const users =await User.find();
+
+  res.status(201).json({
+    success: true,
+    message: "Note created Successfully",
+    users,
+  });
+});
+// single id
+userRoutes.get("/:usersId", async (req: Request, res: Response) => {
+    const usersId=req.params.usersId
+  const users =await User.findById(usersId);
+
+  res.status(201).json({
+    success: true,
+    message: "Note created Successfully",
+    users,
+  });
+});
+// update id
+userRoutes.patch("/:usersId", async (req: Request, res: Response) => {
+    const usersId=req.params.usersId
+    const updateUsers=req.body
+  const users =await User.findByIdAndUpdate(usersId,updateUsers,{new:true});
+
+  res.status(201).json({
+    success: true,
+    message: "Note created Successfully",
+    users,
+  });
+});
+// delete id
+userRoutes.delete("/:usersId", async (req: Request, res: Response) => {
+    const usersId=req.params.usersId
+    
+  const users =await User.findByIdAndDelete(usersId);
+
+  res.status(201).json({
+    success: true,
+    message: "Note created Successfully",
+    users,
+  });
+});
+```
