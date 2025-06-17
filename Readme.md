@@ -25,3 +25,11 @@ Build a complete User model with interfaces and CRUD functionalities.
 By the end of this module, you’ll not only master Mongoose’s core features but also build a solid foundation for building scalable, maintainable, and type-safe MongoDB applications.
 
 Let’s get started on the path to becoming a MongoDB + Mongoose pro! 💪
+
+## 17-1 What is Mongoose and Why Use It with MongoDB
+![alt text](image.png)
+#### Why Learn Mongoose?
+Simplifies MongoDB operations with built-in schema validation.
+Reduces boilerplate code for database interactions.
+Supports middleware for pre/post operations.
+Well-suited for Node.js applications.
