@@ -304,3 +304,67 @@ app.get("/", (req: Request, res: Response) => {
 });
 export default app;
 ```
+
+## 17-5 Create and Save a Note, Get All and Single Notes
+
+#### Insert a note
+
+```js
+app.post("/notes/create-note", async (req: Request, res: Response) => {
+  const body = req.body;
+  const note = await Note.create(body);
+
+  res.status(201).json({
+    success: true,
+    message: "Note Created Successfully !",
+    note: note,
+  });
+});
+```
+
+#### Get All Notes
+
+```js
+app.post("/notes/create-note", async (req: Request, res: Response) => {
+  const body = req.body;
+  const note = await Note.create(body);
+
+  res.status(201).json({
+    success: true,
+    message: "Note Created Successfully !",
+    note: note,
+  });
+});
+```
+
+#### Get a Single Note
+
+- using Mongodb Id and findById. This will be only Mongodb Id Field
+
+```js
+const noteId = req.params.noteId;
+const note = await Note.findById(noteId);
+```
+
+- Using FindOne. This can be any field
+
+```js
+const noteId = req.params.noteId;
+const note = await Note.findOne({ _id: noteId });
+```
+
+- Final Code
+
+```js
+app.get("/notes/:noteId", async (req: Request, res: Response) => {
+  const noteId = req.params.noteId;
+  const note = await Note.findById(noteId);
+  // const note = await Note.findOne({ _id: noteId });
+
+  res.status(201).json({
+    success: true,
+    message: "Note Retrieved Successfully !",
+    note: note,
+  });
+});
+```
