@@ -20,7 +20,11 @@ const noteSchema = new Schema({
     label: { type: String, required: true },
     color: { type: String, default: "gray" },
   },
-});
+},{
+    versionKey:false,
+    timestamps:true
+}
+);
 const Note = model("Note", noteSchema);
 
 app.post("/notes/create-note", async (req: Request, res: Response) => {
@@ -59,6 +63,34 @@ app.get("/notes/:noteId", async (req: Request, res: Response) => {
 const noteId=req.params.noteId
 // const note = await Note.findById(noteId)
 const note = await Note.findOne({_id:noteId})
+  res.status(201).json({
+    success: true,
+    message: "Note created Successfully",
+    note
+  });
+});
+// update
+app.patch("/notes/:noteId", async (req: Request, res: Response) => {
+const noteId=req.params.noteId
+const updateBody=req.body
+// const note = await Note.findById(noteId)
+const note = await Note.findOneAndUpdate({_id:noteId},updateBody,{new:true})
+// const note = await Note.updateOne({_id:noteId},updateBody,{new:true})
+// const note = await Note.findByIdAndUpdate(noteId,updateBody,{new:true})
+  res.status(201).json({
+    success: true,
+    message: "Note created Successfully",
+    note
+  });
+});
+// Delete
+app.delete("/notes/:noteId", async (req: Request, res: Response) => {
+const noteId=req.params.noteId
+
+// const note = await Note.findById(noteId)
+const note = await Note.findByIdAndDelete(noteId)
+// const note = await Note.updateOne({_id:noteId},updateBody,{new:true})
+// const note = await Note.findByIdAndUpdate(noteId,updateBody,{new:true})
   res.status(201).json({
     success: true,
     message: "Note created Successfully",
