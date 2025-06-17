@@ -206,3 +206,101 @@ app.get("/", (req: Request, res: Response) => {
 });
 export default app;
 ```
+
+
+## 17-4 Understanding Data Types and Required Fields in Schema
+
+[Schema Types](https://mongoosejs.com/docs/guide.html)
+
+#### Different Style of Defining Schema types
+
+```js
+import mongoose from "mongoose";
+const { Schema } = mongoose;
+
+const blogSchema = new Schema({
+  title: String, // String is shorthand for {type: String}
+  author: String,
+  body: String,
+  comments: [{ body: String, date: Date }],
+  date: { type: Date, default: Date.now },
+  hidden: Boolean,
+  meta: {
+    votes: Number,
+    favs: Number,
+  },
+});
+```
+
+#### Enum Types in Schema
+
+```js
+const enum = {
+  values: ["opening", "open", "closing", "closed"],
+  message: "enum validator failed for path `{PATH}` with value `{VALUE}`",
+};
+```
+
+or
+
+```js
+const category = {
+  type: String,
+  enum : ["A", "B", "C"]
+  default : "A"
+}
+```
+
+#### Implementing Schema Types In Our Project
+
+```js
+import express, { Application, NextFunction, Request, Response } from "express";
+import { model, Schema } from "mongoose";
+
+const app: Application = express();
+
+// 1. create schema
+const noteSchema = new Schema({
+  title: { type: String, required: true, trim: true },
+  content: { type: String, default: "" },
+  category: {
+    type: String,
+    enum: ["personal", "work", "study", "others"],
+    default: "personal",
+  },
+  pinned: {
+    type: Boolean,
+    default: false,
+  },
+  tags: {
+    label: { type: String, required: true },
+    color: { type: String, default: "gray" },
+  },
+});
+
+// 2. Create Model
+const Note = model("Note", noteSchema);
+
+// 3. Insert data using the model
+app.post("/create-note", async (req: Request, res: Response) => {
+  // res.send("Welcome To Todo App");
+  const myNote = new Note({
+    title: "Node",
+    tags: {
+      label: "database",
+    },
+  });
+
+  await myNote.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Note Created Successfully !",
+    note: myNote,
+  });
+});
+app.get("/", (req: Request, res: Response) => {
+  res.send("Welcome To Todo App");
+});
+export default app;
+```
